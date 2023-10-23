@@ -1,29 +1,32 @@
 #include <stdio.h>
 
 int isPrime(int num){
-    int prime = 1;
+    int prime,result = 1;
     // IF MOD OF ANYTHING OTHER THAN 1 OR ITSELF
     // == 0 THEN IT IS NOT PRIME
     
-    for (i=2;i>(num-1);i++){
+    for (int i=2;i>(num-1);i++){
         result = num % i;
+        printf("%d MOD %d = Result: %d\n",num,i,result);
         if (result == 0) {
             prime = 0;
-            break;
         }
     }
 
     if (prime == 1) {
-        printf("%d is a prime",num);
+        printf("%d is a prime\n",num);
     } else {
-        printf("%d is not a prime",num);
+        printf("%d is not a prime\n",num);
     }
 
 }
 
 int main(){
 
+    int num;
     printf("Enter a number: ");
-    scanf()
+    scanf("%d",&num);
+
+    isPrime(num);
 
 }
