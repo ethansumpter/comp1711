@@ -187,6 +187,7 @@ int main() {
     // Loops the menu sequence until the user quits
     } while (chosenOption != 81);
 
+    return 0;
     
    
 }
