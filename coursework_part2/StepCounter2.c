@@ -7,7 +7,8 @@
 
 // Define any additional variables here
 // Global variables for filename and FITNESS_DATA array
-
+FITNESS_DATA data[100];
+char filename[100];
 
 // This is your helper function. Do not change it in any way.
 // Inputs: character array representing a row; the delimiter character
@@ -38,7 +39,7 @@ void tokeniseRecord(const char *input, const char *delimiter,
                     }
 
 // Function to display menu items and accept the menu choice
-char displayMenu(){
+char display_menu(){
     char opt;
     printf("\nMenu Options:\n");
     printf("A: Specify the filename to be imported\n");
@@ -49,132 +50,207 @@ char displayMenu(){
     printf("F: Find the longest continuous period where the step count is above 500 steps\n");
     printf("Q: Quit\n\n");
     printf("Enter choice: ");
-    scanf(" %c",&opt);
-
+    
+    opt = getchar();
+    while (getchar() != '\n');
     return opt;
-
 }
 
+FILE* open_file(char *filename, char *mode)
+{
+    FILE *input = fopen(filename, mode);
+    if (!input)
+    {
+        printf("Error: File could not be opened\n");
+        return NULL;
+    }
+    return input;
+}
+
+void read_file() {
+    FILE* input_file = open_file(filename,"r");
+    char date[11];
+    char time[6];
+    char steps[10];
+    int counter = 0;
+    int buffer_size = 100;
+    char line[buffer_size];
+
+    // Reads through the csv file to the 
+    while (fgets(line, buffer_size, input_file)) {
+        tokeniseRecord(line,",",date,time,steps);
+
+        strcpy(data[counter].date,date);
+        strcpy(data[counter].time,time);
+        data[counter].steps = atoi(steps);
+        counter++;
+    }
+
+    // fclose(input_file);
+}
+
+int num_records(){
+    int counter = 0;
+    int buffer_size = 100;
+    char line[buffer_size];
+
+    FILE* input_file = open_file(filename,"r");
+
+    // Reads through the csv file to the 
+    while (fgets(line, buffer_size, input_file)) {
+        counter++;
+    }
+
+    // fclose(input_file);
+    return counter;
+}
+
+void fewest_steps(){
+    FILE* input_file = open_file(filename,"r");
+    int counter = num_records(input_file);
+    int min_steps = 0;
+
+    // Loops through each record for steps and checks if the record is smaller than the current smallest
+    for (int i = 1; i < counter; i++) {
+        if (data[i].steps < data[min_steps].steps) {
+            // Sets the min steps variable as the index value
+            min_steps = i;
+        }
+    }
+
+    // Prints the date and time of min steps
+    printf("Fewest steps: %s %s\n",data[min_steps].date,data[min_steps].time);
+}
+
+void most_steps(){
+    FILE* input_file = open_file(filename,"r");
+    int counter = num_records(input_file);
+    int max_steps = 0;
+
+    // Loops through each record to check if the num of steps is greater than current maximum
+    for (int i = 1; i < counter; i++) {
+        if (data[i].steps > data[max_steps].steps) {
+            max_steps = i;
+        }
+    }
+
+    // Prints the date and time of max steps
+    printf("Largest steps: %s %s\n",data[max_steps].date,data[max_steps].time);
+}
+
+void mean_steps(){
+    FILE* input_file = open_file(filename,"r");
+    int counter = num_records(input_file);
+    int total = 0;
+    float mean = 0;
+
+    // Loops through each record to total the number of steps
+    for (int i = 0; i < counter; i++) {
+        total += data[i].steps;
+    }
+
+    mean = total / counter;
+    printf("Mean step count: %.2f\n",mean);
+}
+
+void longest_period(){
+    FILE* input_file = open_file(filename,"r");
+    int counter = num_records(input_file);
+    int start_pos_temp = 0;
+    int temp_cont_steps_count = 0;
+    int cont_steps_count = 0;
+    int start_pos = 0;
+
+    for (int i = 0; i < counter; i++) {
+        if (data[i].steps > 500) {
+            if (data[i-1].steps <= 500) {
+                start_pos_temp = i;
+            }
+            temp_cont_steps_count++;
+            if (temp_cont_steps_count > cont_steps_count) {
+                start_pos = start_pos_temp;
+                cont_steps_count = temp_cont_steps_count;
+            } 
+
+        } else {
+            temp_cont_steps_count = 0;
+        }
+
+    }
+
+    int end_pos = start_pos + cont_steps_count - 1;
+
+    printf("Longest period start: %s %s\n", data[start_pos].date, data[start_pos].time);
+    printf("Longest period end: %s %s\n",data[start_pos+cont_steps_count].date,data[end_pos].time);
+}
 
 
 // Complete the main function
 int main() {
-    // Defines variables
-    char chosenOption,filename[100],date[11],time[6],steps[10];
-    FITNESS_DATA data[100];
-    int buffer_size = 100,counter=0,min_steps=0,max_steps=0,total=0,start_pos =0,start_pos_temp=0, cont_steps_count = 0, temp_cont_steps_count = 0;
-    char line[buffer_size];
+    char chosen_option;
+    FILE* data_file;
+    int counter = 0;
 
     // Repeats the menu until quit is chosen
-    do{
+    while (1){
         // Displays menu on each iteration of the loop
-        chosenOption = displayMenu();
+        chosen_option = display_menu();
         
 
-        switch (chosenOption) {
+        switch (chosen_option) {
             // A - Accepts filename
             // Handles a filename and loads in the file to the main program
-            case 65:
+            case 'A':
+            case 'a':
                 printf("Input filename: ");
                 scanf("%s",filename);
-
-                FILE *data_file = fopen(filename, "r");
+                getchar();
+                data_file = open_file(filename, "r");
                 if (data_file == NULL) {
-                    // Displays an error with the file and quits the program
-                    printf("Error: Could not find or open the file.\n");
                     return 1;
-                } else{
-                    printf("File successfully loaded.\n");
+                } else {
+                    read_file();
                 }
-
                 break;
 
             // B - displays how many records
-            case 66:
+            case 'B':
+            case 'b':
 
-                // Reads through the csv file to the 
-                while (fgets(line,buffer_size,data_file)) {
-                    tokeniseRecord(line,",",date,time,steps);
-
-                    strcpy(data[counter].date,date);
-                    strcpy(data[counter].time,time);
-                    data[counter].steps = atoi(steps);
-
-                    counter++;
-                }
+                // read_file(data_file);
+                counter = num_records();
                 
                 // Prints total records as required
                 printf("Total records: %d\n",counter);
                 break;
             
             // C - fewest steps
-            case 67:
-
-                // Loops through each record for steps and checks if the record is smaller than the current smallest
-                for (int i = 1; i < counter; i++) {
-                    if (data[i].steps < data[min_steps].steps) {
-                        // Sets the min steps variable as the index value
-                        min_steps = i;
-                    }
-                }
-
-                // Prints the date and time of min steps
-                printf("Fewest steps: %s %s\n",data[min_steps].date,data[min_steps].time);
+            case 'C':
+            case 'c':
+                fewest_steps();
                 break;
 
             // D - most steps
-            case 68:
-
-                // Loops through each record to check if the num of steps is greater than current maximum
-                for (int i = 1; i < counter; i++) {
-                    if (data[i].steps > data[max_steps].steps) {
-                        max_steps = i;
-                    }
-                }
-
-                // Prints the date and time of max steps
-                printf("Largest steps: %s %s\n",data[max_steps].date,data[max_steps].time);
-                break;
-
+            case 'D':
+            case 'd':
+                most_steps();
                 break;
 
             // E - mean steps
-            case 69:
-
-                // Loops through each record to total the number of steps
-                for (int i = 0; i < counter; i++) {
-                    total += data[i].steps;
-                }
-                printf("Mean step count: %d\n",total/counter);
+            case 'E':
+            case 'e':
+                mean_steps();
                 break;
 
             // F - longest period above 500 steps
-            case 70:
-
-                for (int i = 0; i < counter; i++) {
-                    if (data[i].steps > 500) {
-                        if (data[i-1].steps <= 500) {
-                            start_pos_temp = i;
-                        }
-                        temp_cont_steps_count++;
-                        if (temp_cont_steps_count > cont_steps_count) {
-                            start_pos = start_pos_temp;
-                            cont_steps_count = temp_cont_steps_count;
-                        } 
-
-                    } else {
-                        temp_cont_steps_count = 0;
-                    }
-
-                }
-
-                printf("Longest period start: %s %s\n", data[start_pos].date, data[start_pos].time);
-                printf("Longest period end: %s %s\n",data[start_pos+cont_steps_count].date,data[start_pos+cont_steps_count].time);
-
+            case 'F':
+            case 'f':
+                longest_period();
                 break;
 
             // Q - quit
-            case 81:
+            case 'Q':
+            case 'q':
                 exit(0);
                 break;
 
@@ -184,12 +260,10 @@ int main() {
 
         }
 
-    // Loops the menu sequence until the user quits
-    } while (chosenOption != 81);
+    }
 
     return 0;
     
-   
 }
 
 
