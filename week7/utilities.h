@@ -71,6 +71,10 @@ FILE *open_file(char *filename, char *mode)
     return input;
 }
 
+void read_file(FILE *inputFile, reading *dataArray) {
+    
+}
+
 /**
  * @brief Reads the data from the input file into an array of structs
  *
